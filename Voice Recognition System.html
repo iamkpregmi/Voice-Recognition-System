@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Recognition System</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+    }
+    textarea {
+        width: 80%;
+        height: 200px;
+        margin: 20px auto;
+        padding: 10px;
+        font-size: 16px;
+        overflow-y: scroll; /* Add scrollbars if needed */
+    }
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        margin: 10px;
+    }
+</style>
+</head>
+<body>
+    <h1 style="color: blue;">Voice Recognition System (Beta Testing)</h1>
+    <button id="toggleButton">Enable Voice Recognition</button>
+    <button id="clearButton">Clear Text</button>
+    <button id="copyButton">Copy Text</button>
+    <textarea id="output" placeholder="Spoken text will appear here..." readonly></textarea>
+
+    <script>
+        const outputTextarea = document.getElementById('output');
+        const toggleButton = document.getElementById('toggleButton');
+        const clearButton = document.getElementById('clearButton');
+        const copyButton = document.getElementById('copyButton');
+
+        let recognition = new webkitSpeechRecognition() || new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = true;
+        recognition.continuous = true; // Ensure continuous listening
+        
+        let listening = false;
+        let timeout;
+
+        toggleButton.addEventListener('click', () => {
+            if (!listening) {
+                startRecognition();
+            } else {
+                stopRecognition();
+            }
+        });
+
+        clearButton.addEventListener('click', () => {
+            outputTextarea.value = '';
+        });
+
+        copyButton.addEventListener('click', () => {
+            outputTextarea.select();
+            document.execCommand('copy');
+        });
+
+        function startRecognition() {
+            recognition.start();
+            toggleButton.textContent = 'Disable Voice Recognition';
+            outputTextarea.placeholder = 'Listening...';
+            listening = true;
+            timeout = setTimeout(() => {
+                stopRecognition();
+            }, 5000); // Stop listening after 5 seconds of silence
+        }
+
+        function stopRecognition() {
+            recognition.stop();
+            clearTimeout(timeout); // Clear the timeout if stopping manually
+            toggleButton.textContent = 'Enable Voice Recognition';
+            outputTextarea.placeholder = 'Voice recognition stopped.';
+            listening = false;
+        }
+
+        recognition.onresult = function(event) {
+            let finalTranscript = '';
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript + ' ';
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            outputTextarea.value += finalTranscript; // Append to existing text
+            outputTextarea.scrollTop = outputTextarea.scrollHeight; // Scroll to bottom
+            clearTimeout(timeout); // Reset the timeout
+            timeout = setTimeout(() => {
+                stopRecognition();
+            }, 5000); // Restart the timeout after each result
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error detected: ' + event.error);
+            stopRecognition();
+        };
+
+        recognition.onend = function() {
+            toggleButton.textContent = 'Enable Voice Recognition';
+            outputTextarea.placeholder = 'Voice recognition stopped.';
+            listening = false;
+        };
+    </script>
+</body>
+</html>
