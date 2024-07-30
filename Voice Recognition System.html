@@ -30,6 +30,7 @@
     <button id="toggleButton">Enable Voice Recognition</button>
     <button id="clearButton">Clear Text</button>
     <button id="copyButton">Copy Text</button>
+    <button id="readButton">Read Text</button>
     <textarea id="output" placeholder="Spoken text will appear here..." readonly></textarea>
 
     <script>
@@ -37,6 +38,9 @@
         const toggleButton = document.getElementById('toggleButton');
         const clearButton = document.getElementById('clearButton');
         const copyButton = document.getElementById('copyButton');
+        const readButton = document.getElementById('readButton');
+
+
 
         let recognition = new webkitSpeechRecognition() || new SpeechRecognition();
         recognition.lang = 'en-US';
@@ -52,6 +56,18 @@
             } else {
                 stopRecognition();
             }
+        });
+
+        readButton.addEventListener('click', () => {
+            output_text = document.getElementById('output').value;
+            const utterance = new SpeechSynthesisUtterance(output_text);
+
+            // Optionally set properties like language or pitch
+            utterance.lang = 'en-US'; // Set the language
+            utterance.pitch = 1; // Set the pitch (0-2 range)
+            utterance.rate = 1; // Set the speaking rate (0.1-10 range)
+
+            window.speechSynthesis.speak(utterance);
         });
 
         clearButton.addEventListener('click', () => {
